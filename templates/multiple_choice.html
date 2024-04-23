@@ -1,8 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'question.html' %}
 
 {% block body %}
-<p id="result">{{session['result']}}</p>
-<p id="question">{{session['question'] | safe}}</p>
 <div>
     <input type="radio" id="option1" name="answer" value="0x">
     <label for="option1">0x</label>
@@ -20,34 +18,19 @@
     <label for="option4">2x</label>
 </div>
 
-<!-- Button to check answer -->
 <br>
 <button onclick="checkAnswer()" id="submit">Submit</button>
 
-<!-- Script section containing JavaScript -->
 <script>
     async function checkAnswer() {
-        // Get the selected option
         var selectedOption = document.querySelector('input[name="answer"]:checked');
-        
-        // Check if an option is selected
+
         if (selectedOption) {
-            // Get the value of the selected option
             const selectedValue = selectedOption.value;
             await fetch('/answer/' + selectedValue);
             location.reload()
         }
     }
-</script>
-
-{% if 'score' in session.keys() %}
-    <p>{{session['score']}}/{{session['total']}}</p>
-{% endif %}
-<form action="/menu">
-    <input type="submit" value="menu">
-</form>
-
-<script>
     async function startTask() {
         const response = await fetch('/async_question');
         const data = await response.json();

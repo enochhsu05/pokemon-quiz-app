@@ -149,7 +149,7 @@ def answer_matchup(user_input):
 
 def question_generation():
     generated = api.pokemon_generation_quiz()
-    return create_question(f"which generation is {generated['name']} from?", generated['gen'],
+    return create_question(f"Which generation is {generated['name']} from?", generated['gen'],
                            api.get_pokemon_sprite(generated['name']))
 
 

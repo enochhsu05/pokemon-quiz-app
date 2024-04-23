@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        * {
+            font-size: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <p id="result">{{session['result']}}</p>
+    <p id="question">{{session['question'] | safe}}</p>
+    {% block body %}{% endblock %}
+    {% if 'score' in session.keys() %}
+        <p>{{session['score']}}/{{session['total']}}</p>
+    {% endif %}
+    <form action="/menu">
+        <input type="submit" value="menu">
+    </form>
+</body>
+</html>
