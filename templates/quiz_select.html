@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<form method="POST" action="/generation">
+    <input type="submit" value="generation given pokemon" style="font-size: 24px;">
+</form>
+<form method="POST" action="/pokemon">
+    <input type="submit" value="name given pokemon" style="font-size: 24px;">
+</form>
+<form method="POST" action="/typing">
+    <input type="submit" value="pokemon given typing" style="font-size: 24px;">
+</form>
+<form method="POST" action="/moveset">
+    <input type="submit" value="pokemon given moveset" style="font-size: 24px;">
+</form>
+<form method="POST" action="/matchup">
+    <input type="submit" value="identify the type matchup" style="font-size: 24px;">
+</form>
+
+{% endblock %}

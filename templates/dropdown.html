@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<p style="font-size: 24px;" id="result">{{session['result']}}</p>
+<p style="font-size: 24px;" id="question">{{session['question'] | safe}}</p>
+
+{% if session['image'] %}
+    <img id='image' src={{session['image']}} alt="Pokemon Sprite" style="width: 10%; height: auto; filter: brightness(0) contrast(100)">
+{% endif %}
+
+<form method="POST" action="/answer">
+    <select id="dropdown" name="user_input" style="font-size: 24px;">
+        {% for option in options %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" style="font-size: 24px;" id="submit">Submit</button>
+</form>
+{% if 'score' in session.keys() %}
+    <p style="font-size: 24px;">{{session['score']}}/{{session['total']}}</p>
+{% endif %}
+<form action="/menu">
+    <input type="submit" value="menu" style="font-size: 24px;">
+</form>
+<script>
+    async function startTask(image) {
+        const response = await fetch('/async_question');
+        const data = await response.json();
+        document.getElementById('question').innerText = data.result['question'];
+        document.getElementById('result').innerText = data.result['result'];
+        if (image) {
+            image.src = data.result['image'];
+        }
+    }
+
+    async function getVariables() {
+        const response = await fetch('/data');
+        const data = await response.json();
+        const submit_button = document.getElementById('submit')
+        const image = document.getElementById('image')
+        if (data.result) {
+            if (image) {
+                image.setAttribute('style', 'width: 10%; height: auto;')
+            }
+            submit_button.disabled = true;
+            await startTask(image)
+            submit_button.disabled = false;
+            if (image) {
+                image.setAttribute('style', "width: 10%; height: auto; filter: brightness(0) contrast(100)")
+            }
+        }
+    }
+
+    window.onload = getVariables;
+</script>
+{% endblock %}
