@@ -26,12 +26,18 @@ def menu():
                            'html': 'dropdown'},
                'matchup': {'question': question_matchup, 'answer': answer_matchup, 'options': None,
                            'html': 'multiple_choice'}}
-    return render_template('quiz_select.html')
+    return render_template('difficulty_select.html')
 
 
 @app.route('/menu')
 def to_menu():
     return redirect(url_for('menu'))
+
+
+@app.route('/difficulty/<difficulty>', methods=['POST'])
+def difficulty_select(difficulty):
+    session['difficulty'] = difficulty
+    return render_template('quiz_select.html')
 
 
 @app.route('/<title>')

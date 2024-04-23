@@ -1,26 +1,26 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<p style="font-size: 24px;" id="result">{{session['result']}}</p>
-<p style="font-size: 24px;" id="question">{{session['question'] | safe}}</p>
+<p id="result">{{session['result']}}</p>
+<p id="question">{{session['question'] | safe}}</p>
 
 {% if session['image'] %}
     <img id='image' src={{session['image']}} alt="Pokemon Sprite" style="width: 10%; height: auto; filter: brightness(0) contrast(100)">
 {% endif %}
 
 <form method="POST" action="/answer">
-    <select id="dropdown" name="user_input" style="font-size: 24px;">
+    <select id="dropdown" name="user_input">
         {% for option in options %}
         <option value="{{ option }}">{{ option }}</option>
         {% endfor %}
     </select>
-    <button type="submit" style="font-size: 24px;" id="submit">Submit</button>
+    <button type="submit" id="submit">Submit</button>
 </form>
 {% if 'score' in session.keys() %}
-    <p style="font-size: 24px;">{{session['score']}}/{{session['total']}}</p>
+    <p>{{session['score']}}/{{session['total']}}</p>
 {% endif %}
 <form action="/menu">
-    <input type="submit" value="menu" style="font-size: 24px;">
+    <input type="submit" value="menu">
 </form>
 <script>
     async function startTask(image) {

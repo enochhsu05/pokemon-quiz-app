@@ -1,28 +1,28 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<p style="font-size: 24px;" id="result">{{session['result']}}</p>
-<p style="font-size: 24px;" id="question">{{session['question'] | safe}}</p>
+<p id="result">{{session['result']}}</p>
+<p id="question">{{session['question'] | safe}}</p>
 <div>
     <input type="radio" id="option1" name="answer" value="0x">
-    <label for="option1" style="font-size: 24px;">0x</label>
+    <label for="option1">0x</label>
 </div>
 <div>
     <input type="radio" id="option2" name="answer" value="0.5x">
-    <label for="option2" style="font-size: 24px;">1/2x</label>
+    <label for="option2">1/2x</label>
 </div>
 <div>
     <input type="radio" id="option3" name="answer" value="1x">
-    <label for="option3" style="font-size: 24px;">1x</label>
+    <label for="option3">1x</label>
 </div>
 <div>
     <input type="radio" id="option4" name="answer" value="2x">
-    <label for="option4" style="font-size: 24px;">2x</label>
+    <label for="option4">2x</label>
 </div>
 
 <!-- Button to check answer -->
 <br>
-<button onclick="checkAnswer()" id="submit" style="font-size: 24px;">Submit</button>
+<button onclick="checkAnswer()" id="submit">Submit</button>
 
 <!-- Script section containing JavaScript -->
 <script>
@@ -41,10 +41,10 @@
 </script>
 
 {% if 'score' in session.keys() %}
-    <p style="font-size: 24px;">{{session['score']}}/{{session['total']}}</p>
+    <p>{{session['score']}}/{{session['total']}}</p>
 {% endif %}
 <form action="/menu">
-    <input type="submit" value="menu" style="font-size: 24px;">
+    <input type="submit" value="menu">
 </form>
 
 <script>

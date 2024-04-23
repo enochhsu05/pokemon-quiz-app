@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<form method="POST" action="/difficulty/easy">
+    <input type="submit" value="easy">
+</form>
+<form method="POST" action="/difficulty/medium">
+    <input type="submit" value="medium">
+</form>
+<form method="POST" action="/difficulty/hard">
+    <input type="submit" value="hard">
+</form>
+<form method="POST" action="/difficulty/extreme">
+    <input type="submit" value="extreme">
+</form>
+
+{% endblock %}

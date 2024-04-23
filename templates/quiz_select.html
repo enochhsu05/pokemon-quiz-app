@@ -1,20 +1,25 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<form method="POST" action="/generation">
-    <input type="submit" value="generation given pokemon" style="font-size: 24px;">
-</form>
-<form method="POST" action="/pokemon">
-    <input type="submit" value="name given pokemon" style="font-size: 24px;">
-</form>
-<form method="POST" action="/typing">
-    <input type="submit" value="pokemon given typing" style="font-size: 24px;">
-</form>
-<form method="POST" action="/moveset">
-    <input type="submit" value="pokemon given moveset" style="font-size: 24px;">
-</form>
-<form method="POST" action="/matchup">
-    <input type="submit" value="identify the type matchup" style="font-size: 24px;">
-</form>
+{% if session['difficulty'] == 'easy' %}
+    <form method="POST" action="/matchup">
+        <input type="submit" value="identify the type matchup">
+    </form>
+{% elif session['difficulty'] == 'medium' %}
+    <form method="POST" action="/generation">
+        <input type="submit" value="generation given pokemon">
+    </form>
+    <form method="POST" action="/pokemon">
+        <input type="submit" value="name given pokemon">
+    </form>
+{% elif session['difficulty'] == 'hard' %}
+    <form method="POST" action="/typing">
+        <input type="submit" value="pokemon given typing">
+    </form>
+{% elif session['difficulty'] == 'extreme' %}
+    <form method="POST" action="/moveset">
+        <input type="submit" value="pokemon given moveset">
+    </form>
+{% endif %}
 
 {% endblock %}
