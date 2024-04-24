@@ -198,10 +198,13 @@ def display_image(image_url: str):
     root.mainloop()
 
 
-def calculate_max_damage(attacking_mon: str, defending_mon: str, move: str, attacker_level=50, defender_level=50):
-    move = api_call('move', move)
-    attacking_mon = get_pokemon_by_name(attacking_mon)
-    defending_mon = get_pokemon_by_name(defending_mon)
+def calculate_max_damage(attacking_mon, defending_mon, move, attacker_level=50, defender_level=50):
+    if type(move) == str:
+        move = api_call('move', move)
+    if type(attacking_mon) is str:
+        attacking_mon = get_pokemon_by_name(attacking_mon)
+    if type(defending_mon) is str:
+        defending_mon = get_pokemon_by_name(defending_mon)
     damage_class = to_json(move['damage_class'])['name']
     if damage_class == 'status':
         return 0
@@ -212,8 +215,8 @@ def calculate_max_damage(attacking_mon: str, defending_mon: str, move: str, atta
         attacking_stat = int(0.01 * (2 * (attacking_mon['stats'][3]['base_stat'] + 31 + 0.25*252)) * attacker_level + 5) * 1.1
         defending_stat = int(0.01 * (2 * (defending_mon['stats'][4]['base_stat'] + 31 + 0.25*252)) * defender_level + 5) * 1.1
     hp = int(0.01 * (2 * defending_mon['stats'][0]['base_stat'] + 31 + int(0.25 * 252)) * defender_level) + defender_level + 10
-    effectiveness = type_effectiveness(to_json(move['type']), [to_json(type['type']) for type in defending_mon['types']])
-    stab = 1.5 if to_json(move['type']) in [to_json(type['type']) for type in attacking_mon['types']] else 1
+    effectiveness = type_effectiveness(to_json(move['type']), [to_json(typing['type']) for typing in defending_mon['types']])
+    stab = 1.5 if to_json(move['type']) in [to_json(typing['type']) for typing in attacking_mon['types']] else 1
     return ((2 * attacker_level / 5 + 2) * move['power'] * attacking_stat / defending_stat / 50 + 2) * stab * effectiveness / hp * 100
 
 
@@ -385,6 +388,31 @@ def generate_matchup_question():
     return {'offensive_type': offensive_type['name'],
             'defensive_type': defensive_type,
             'matchup': '1x'}
+
+
+def generate_damage_question():
+    mon_1 = generate_random_pokemon()
+    mon_2 = generate_random_pokemon()
+    moves = mon_1['moves']
+    original_rand = random.randint(0, len(moves) - 1)
+    rand = original_rand
+    move = to_json(moves[rand]['move'])
+    while move['power'] is None and len(moves) > 1:
+        if rand == len(moves) - 1:
+            rand = 0
+        else:
+            rand += 1
+            if rand == original_rand:
+                break
+        move = to_json(moves[rand]['move'])
+    damage = calculate_max_damage(mon_1, mon_2, move)
+    if damage == 0:
+        damage = 1
+    hits = int(100 / damage) + 1
+    if hits >= 5:
+        hits = '5+'
+    return {'attacking_mon': mon_1['name'], 'defending_mon': mon_2['name'], 'move': move['name'],
+            'hits': hits}
 
 
 # print(pokemon_to_name(get_random_team(5, amount=5, min_bst=450, max_bst=500, fully_evolved=True)))

@@ -25,7 +25,9 @@ def menu():
                'moveset': {'question': question_moveset, 'answer': answer_moveset, 'options': api.mons,
                            'html': 'dropdown'},
                'matchup': {'question': question_matchup, 'answer': answer_matchup, 'options': None,
-                           'html': 'multiple_choice'}}
+                           'html': 'multiple_choice'},
+               'damage': {'question': question_damage, 'answer': static_answer, 'options': [1, 2, 3, 4, '5+'],
+                          'html': 'dropdown'}}
     return render_template('difficulty_select.html')
 
 
@@ -81,6 +83,13 @@ def matchup():
     return redirect(url_for('index', title=session['mode']))
 
 
+@app.route('/damage', methods=['POST'])
+def damage():
+    session['mode'] = 'damage'
+    question()
+    return redirect(url_for('index', title=session['mode']))
+
+
 def question():
     session['answer'] = ''
     session['result'] = ''
@@ -112,6 +121,27 @@ def static_answer():
         session['score'] = 0
     session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
     if str(session['answer']) == user_input:
+        session['result'] = "That's right!"
+        session['score'] += 1
+    else:
+        session['result'] = f"That's wrong... it's actually {session['answer']}."
+    return redirect(url_for('index', title=session['mode']))
+
+
+def answer_typing():
+    user_input = request.form['user_input']
+    if 'score' not in session.keys():
+        session['score'] = 0
+    session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
+    if user_input == 'None':
+        if session['answer'] is None:
+            session['result'] = "That's right!"
+            session['score'] += 1
+        else:
+            session['result'] = f"That's wrong... it's actually {session['answer']}."
+        return redirect(url_for('index', title=session['mode']))
+    actual_typings = api.get_type_from_pokemon_name(user_input)
+    if all(mon_typing in actual_typings for mon_typing in list(session['generated'])):
         session['result'] = "That's right!"
         session['score'] += 1
     else:
@@ -180,25 +210,10 @@ def question_matchup():
                            answer=generated['matchup'])
 
 
-def answer_typing():
-    user_input = request.form['user_input']
-    if 'score' not in session.keys():
-        session['score'] = 0
-    session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
-    if user_input == 'None':
-        if session['answer'] is None:
-            session['result'] = "That's right!"
-            session['score'] += 1
-        else:
-            session['result'] = f"That's wrong... it's actually {session['answer']}."
-        return redirect(url_for('index', title=session['mode']))
-    actual_typings = api.get_type_from_pokemon_name(user_input)
-    if all(mon_typing in actual_typings for mon_typing in list(session['generated'])):
-        session['result'] = "That's right!"
-        session['score'] += 1
-    else:
-        session['result'] = f"That's wrong... it's actually {session['answer']}."
-    return redirect(url_for('index', title=session['mode']))
+def question_damage():
+    generated = api.generate_damage_question()
+    return create_question(f"What is the minimum number of hits it takes for {generated['attacking_mon']} to knock out {generated['defending_mon']} using {generated['move']}?",
+                           answer=generated['hits'])
 
 
 def create_question(question, answer=None, image=None, generated=None):
