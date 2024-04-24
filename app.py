@@ -140,13 +140,16 @@ def answer_typing():
             session['score'] += 1
         else:
             session['result'] = f"That's wrong... it's actually {session['answer']}."
+            session['image'] = api.get_pokemon_sprite(session['answer'])
         return redirect(url_for('index', title=session['mode']))
     actual_typings = api.get_type_from_pokemon_name(user_input)
     if all(mon_typing in actual_typings for mon_typing in list(session['generated'])):
         session['result'] = "That's right!"
         session['score'] += 1
+        session['image'] = api.get_pokemon_sprite(user_input)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
+        session['image'] = api.get_pokemon_sprite(session['answer'])
     return redirect(url_for('index', title=session['mode']))
 
 
@@ -161,8 +164,10 @@ def answer_moveset():
         else:
             session['result'] = f"The specific pokemon is {session['answer']}, but close enough!"
         session['score'] += 1
+        session['image'] = api.get_pokemon_sprite(user_input)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
+        session['image'] = api.get_pokemon_sprite(session['answer'])
     return redirect(url_for('index', title=session['mode']))
 
 
@@ -200,7 +205,7 @@ def question_moveset():
     generated = api.generate_moveset_question()
     moves = ''
     for move in generated['moveset']:
-        moves += '\n' + move
+        moves += '<br>' + move
     return create_question(f"Which pokemon can learn all of these moves through leveling up? {moves}",
                            answer=generated['mon'], generated=generated['line'])
 
