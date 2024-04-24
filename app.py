@@ -24,10 +24,10 @@ def menu():
                           'options': mons_and_none, 'html': 'dropdown'},
                'moveset': {'question': question_moveset, 'answer': answer_moveset, 'options': api.mons,
                            'html': 'dropdown'},
-               'matchup': {'question': question_matchup, 'answer': answer_matchup, 'options': None,
+               'matchup': {'question': question_matchup, 'answer': answer_matchup, 'options': ['0x', '0.5x', '1x', '2x'],
                            'html': 'multiple_choice'},
                'damage': {'question': question_damage, 'answer': static_answer, 'options': [1, 2, 3, 4, '5+'],
-                          'html': 'dropdown'}}
+                          'html': 'multiple_choice_2'}}
     return render_template('difficulty_select.html')
 
 
@@ -102,7 +102,7 @@ def answer(user_input=None):
     if not generate_async_question:
         generate_async_question = True
         session['question'] = ''
-        if not user_input:
+        if user_input is None:
             return methods[session['mode']]['answer']()
         else:
             return methods[session['mode']]['answer'](user_input)
@@ -115,8 +115,9 @@ def answer_input(user_input: None):
     return answer(user_input)
 
 
-def static_answer():
-    user_input = request.form['user_input']
+def static_answer(user_input=None):
+    if user_input is None:
+        user_input = request.form['user_input']
     if 'score' not in session.keys():
         session['score'] = 0
     session['total'] = session['total'] + 1 if 'total' in session.keys() else 1

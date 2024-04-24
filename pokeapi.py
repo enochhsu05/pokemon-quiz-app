@@ -199,6 +199,7 @@ def display_image(image_url: str):
 
 
 def calculate_max_damage(attacking_mon, defending_mon, move, attacker_level=50, defender_level=50):
+    # assumes max iv's and max attacking evs and nature
     if type(move) == str:
         move = api_call('move', move)
     if type(attacking_mon) is str:
@@ -210,10 +211,10 @@ def calculate_max_damage(attacking_mon, defending_mon, move, attacker_level=50, 
         return 0
     if damage_class == 'physical':
         attacking_stat = int(0.01 * (2 * (attacking_mon['stats'][1]['base_stat'] + 31 + 0.25*252)) * attacker_level + 5) * 1.1
-        defending_stat = int(0.01 * (2 * (defending_mon['stats'][2]['base_stat'] + 31 + 0.25*252)) * defender_level + 5) * 1.1
+        defending_stat = int(0.01 * (2 * (defending_mon['stats'][2]['base_stat'] + 31)) * defender_level + 5)
     else:
         attacking_stat = int(0.01 * (2 * (attacking_mon['stats'][3]['base_stat'] + 31 + 0.25*252)) * attacker_level + 5) * 1.1
-        defending_stat = int(0.01 * (2 * (defending_mon['stats'][4]['base_stat'] + 31 + 0.25*252)) * defender_level + 5) * 1.1
+        defending_stat = int(0.01 * (2 * (defending_mon['stats'][4]['base_stat'] + 31)) * defender_level + 5)
     hp = int(0.01 * (2 * defending_mon['stats'][0]['base_stat'] + 31 + int(0.25 * 252)) * defender_level) + defender_level + 10
     effectiveness = type_effectiveness(to_json(move['type']), [to_json(typing['type']) for typing in defending_mon['types']])
     stab = 1.5 if to_json(move['type']) in [to_json(typing['type']) for typing in attacking_mon['types']] else 1
@@ -409,7 +410,7 @@ def generate_damage_question():
     if damage == 0:
         damage = 1
     hits = int(100 / damage) + 1
-    if hits >= 5:
+    if hits >= 5 or move['name'] == 'false-swipe':
         hits = '5+'
     return {'attacking_mon': mon_1['name'], 'defending_mon': mon_2['name'], 'move': move['name'],
             'hits': hits}

@@ -3,7 +3,7 @@
 {% block body %}
 
 {% if session['image'] %}
-    <img id='image' src={{session['image']}} alt="Pokemon Sprite" style="width: 10%; height: auto; filter: brightness(0) contrast(100)">
+    <img id='image' src={{session['image']}} alt="Pokemon Sprite" style="width: 30%; height: auto; filter: brightness(0) contrast(100)">
 {% endif %}
 
 <form method="POST" action="/answer">
@@ -32,13 +32,13 @@
         const image = document.getElementById('image')
         if (data.result) {
             if (image) {
-                image.setAttribute('style', 'width: 10%; height: auto;')
+                image.setAttribute('style', 'width: 30%; height: auto;')
             }
             submit_button.disabled = true;
             await startTask(image)
             submit_button.disabled = false;
             if (image) {
-                image.setAttribute('style', "width: 10%; height: auto; filter: brightness(0) contrast(100)")
+                image.setAttribute('style', "width: 30%; height: auto; filter: brightness(0) contrast(100)")
             }
         }
     }
