@@ -164,10 +164,9 @@ def answer_moveset():
         else:
             session['result'] = f"The specific pokemon is {session['answer']}, but close enough!"
         session['score'] += 1
-        session['image'] = api.get_pokemon_sprite(user_input)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
-        session['image'] = api.get_pokemon_sprite(session['answer'])
+    session['image'] = api.get_pokemon_sprite(session['answer'])
     return redirect(url_for('index', title=session['mode']))
 
 
