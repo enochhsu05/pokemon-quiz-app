@@ -327,8 +327,9 @@ def get_pokemon_from_typing(typing: tuple[str, str or None]):
     return None
 
 
-def get_level_up_moveset(mon, game_order=22):  # does not include level-up moves that are also learnable by tm??
-    moves = []
+def get_level_up_moveset(mon, game_order=22, ordered=True):  # does not include level-up moves that are also learnable by tm??
+    moves = {}
+    moves_unordered = []
     for move in mon['moves']:
         version_details = move['version_group_details']
         order = games[version_details[0]['version_group']['name']]
@@ -338,22 +339,38 @@ def get_level_up_moveset(mon, game_order=22):  # does not include level-up moves
                 if game_number > order:
                     break
                 elif game_number == order:
-                    if version_details[i]['level_learned_at'] != 0:
-                        moves.append(move['move']['name'])
+                    level = version_details[i]['level_learned_at']
+                    if level != 0:
+                        if ordered:
+                            moves[move['move']['name']] = level
+                        else:
+                            moves_unordered.append(move['move']['name'])
                     break
                 else:
                     i += 1
-    return moves
+    if ordered:
+        moves_ordered = []
+        for move, level in moves.items():
+            i = 0
+            for ordered_move in moves_ordered:
+                if level <= ordered_move[0]:
+                    break
+                i += 1
+            moves_ordered.insert(i, (level, move))
+        moves_ordered = [move[1] for move in moves_ordered]
+        return moves_ordered
+    else:
+        return moves_unordered
 
 
 def list_to_name(arr):
     return [i['name'] for i in arr]
 
 
-def generate_moveset_question():
-    mon = generate_random_pokemon(1, 5)
+def generate_moveset_question(start_gen=1, end_gen=9, game='scarlet-violet'):
+    mon = generate_random_pokemon(start_gen, end_gen)
     evo = list_to_name(get_species_line_from_species(api_call('pokemon-species', mon['name'])))
-    moves = get_level_up_moveset(mon, games['black-white'])
+    moves = get_level_up_moveset(mon, games[game])
     return {'mon': mon['name'], 'line': evo, 'moveset': moves}
 
 
@@ -428,16 +445,3 @@ def generate_damage_question():
         hits = '5+'
     return {'attacking_mon': mon_1['name'], 'defending_mon': mon_2['name'], 'move': move['name'],
             'hits': hits}
-
-
-# print(pokemon_to_name(get_random_team(5, amount=5, min_bst=450, max_bst=500, fully_evolved=True)))
-# for mon in get_pokemon_with_ability('prankster'):
-#     display_stats(mon, stats=[6])
-# print_ability_with_moves("wonder-guard", ["tackle"])
-# print_has_all_moves(['endeavor', 'flail'])
-# display_image(get_front_sprite('absol'))
-# print(calculate_max_damage('nidorina', 'onix', 'quick-attack'))
-# print(guess_pokemon_by_type())
-# print(typing_exists('dark', 'fire'))
-# print(how_many_hko('charizard', 'leavanny', 'flamethrower'))
-# print(get_level_up_moveset(get_pokemon_by_name('gastly')))
