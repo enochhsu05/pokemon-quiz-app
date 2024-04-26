@@ -30,6 +30,9 @@ class Scoreboard(db.Model):
 def menu():
     db.create_all()
     if 'total' in session:
+        prev = Scoreboard.query.filter_by(category=session['mode']).first()
+        if prev:
+            db.session.delete(prev)
         new_score = Scoreboard(session['mode'], session['score'], session['total'])
         db.session.add(new_score)
         db.session.commit()
@@ -65,7 +68,7 @@ def difficulty_select(difficulty):
 
 @app.route('/scoreboard', methods=['POST'])
 def scoreboard():
-    return render_template('scoreboard.html', scoreboard=Scoreboard.query.all())
+    return render_template('scoreboard.html', scoreboard=list(reversed(Scoreboard.query.all())))
 
 
 @app.route('/<title>')
