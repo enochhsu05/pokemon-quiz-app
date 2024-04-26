@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block body %}
+
+{% for score in scoreboard %}
+    <p>{{score.category}}: {{score.score}}/{{score.total}}</p>
+{% endfor %}
+
+<form action="/menu">
+    <input type="submit" value="menu">
+</form>
+
+{% endblock %}

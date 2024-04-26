@@ -1,17 +1,38 @@
 import eventlet
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask_sqlalchemy import SQLAlchemy
 import pokeapi as api
 import time
 
 app = Flask(__name__)
 app.secret_key = "123"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.sqlite3'
 methods = {}
 generate_async_question = False
 pause_between_questions = 1
 
+db = SQLAlchemy(app)
+
+
+class Scoreboard(db.Model):
+    id = db.Column('id', db.Integer, primary_key=True)
+    category = db.Column('category', db.String(100))
+    score = db.Column('score', db.Integer)
+    total = db.Column('total', db.Integer)
+
+    def __init__(self, category, score, total):
+        self.category = category
+        self.score = score
+        self.total = total
+
 
 @app.route('/')
 def menu():
+    db.create_all()
+    if 'total' in session:
+        new_score = Scoreboard(session['mode'], session['score'], session['total'])
+        db.session.add(new_score)
+        db.session.commit()
     session.clear()
     global methods
     mons_and_none = api.mons.copy()
@@ -40,6 +61,11 @@ def to_menu():
 def difficulty_select(difficulty):
     session['difficulty'] = difficulty
     return render_template('quiz_select.html')
+
+
+@app.route('/scoreboard', methods=['POST'])
+def scoreboard():
+    return render_template('scoreboard.html', scoreboard=Scoreboard.query.all())
 
 
 @app.route('/<title>')
