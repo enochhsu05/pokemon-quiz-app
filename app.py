@@ -18,24 +18,23 @@ class Scoreboard(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     category = db.Column('category', db.String(100))
     score = db.Column('score', db.Integer)
-    total = db.Column('total', db.Integer)
 
-    def __init__(self, category, score, total):
+    def __init__(self, category, score):
         self.category = category
         self.score = score
-        self.total = total
 
 
 @app.route('/')
 def menu():
     db.create_all()
     if 'total' in session:
-        prev = Scoreboard.query.filter_by(category=session['mode']).first()
-        if prev:
-            db.session.delete(prev)
-        new_score = Scoreboard(session['mode'], session['score'], session['total'])
-        db.session.add(new_score)
-        db.session.commit()
+        consecutive_score = Scoreboard.query.filter_by(category=session['mode']).first()
+        if not consecutive_score or consecutive_score.score < session['consecutive_correct']:
+            new_score = Scoreboard(session['mode'], session['consecutive_correct'])
+            db.session.add(new_score)
+            if consecutive_score:
+                db.session.delete(consecutive_score)
+            db.session.commit()
     session.clear()
     global methods
     mons_and_none = api.mons.copy()
@@ -153,8 +152,10 @@ def static_answer(user_input=None):
     if str(session['answer']) == user_input:
         session['result'] = "That's right!"
         session['score'] += 1
+        update_highscore(True)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
+        update_highscore(False)
     return redirect(url_for('index', title=session['mode']))
 
 
@@ -167,18 +168,22 @@ def answer_typing():
         if session['answer'] is None:
             session['result'] = "That's right!"
             session['score'] += 1
+            update_highscore(True)
         else:
             session['result'] = f"That's wrong... it's actually {session['answer']}."
             session['image'] = api.get_pokemon_sprite(session['answer'])
+            update_highscore(False)
         return redirect(url_for('index', title=session['mode']))
     actual_typings = api.get_type_from_pokemon_name(user_input)
     if all(mon_typing in actual_typings for mon_typing in list(session['generated'])):
         session['result'] = "That's right!"
         session['score'] += 1
+        update_highscore(True)
         session['image'] = api.get_pokemon_sprite(user_input)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
         session['image'] = api.get_pokemon_sprite(session['answer'])
+        update_highscore(False)
     return redirect(url_for('index', title=session['mode']))
 
 
@@ -193,8 +198,10 @@ def answer_moveset():
         else:
             session['result'] = f"The specific pokemon is {session['answer']}, but close enough!"
         session['score'] += 1
+        update_highscore(True)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
+        update_highscore(False)
     session['image'] = api.get_pokemon_sprite(session['answer'])
     return redirect(url_for('index', title=session['mode']))
 
@@ -206,8 +213,10 @@ def answer_matchup(user_input):
     if user_input == session['answer']:
         session['result'] = "That's right!"
         session['score'] += 1
+        update_highscore(True)
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
+        update_highscore(False)
     return redirect(url_for('index', title=session['mode']))
 
 
@@ -274,6 +283,15 @@ def async_question():
 @app.route('/data')
 def get_data():
     return jsonify(result=generate_async_question)
+
+
+def update_highscore(scored: bool):
+    if 'consecutive_correct' not in session.keys():
+        session['consecutive_correct'] = 0
+    if scored:
+        session['consecutive_correct'] += 1
+    else:
+        session['consecutive_correct'] = 0
 
 
 if __name__ == '__main__':

@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
 {% block body %}
 
+<h2>The most consecutive correct answers for each category</h2>
 {% for score in scoreboard %}
-    <p>{{score.category}}: {{score.score}}/{{score.total}}</p>
+    <p>{{score.category}}: {{score.score}}</p>
 {% endfor %}
 
 <form action="/menu">
