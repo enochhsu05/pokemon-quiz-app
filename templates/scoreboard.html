@@ -1,10 +1,23 @@
 {% extends 'base.html' %}
 {% block body %}
 
-<h2>The most consecutive correct answers for each category</h2>
-{% for score in scoreboard %}
-    <p>{{score.category}}: {{score.score}}</p>
-{% endfor %}
+<h1 style="font-size: 40px">Scoreboard</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Max Streak</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score in scoreboard %}
+            <tr>
+                <td>{{score.category}}</td>
+                <td>{{score.score}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 <form action="/menu">
     <input type="submit" value="menu">
