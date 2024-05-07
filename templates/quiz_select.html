@@ -23,6 +23,10 @@
     <form method="POST" action="/moveset">
         <input type="submit" value="Pokemon given moveset">
     </form>
+{% elif session['difficulty'] == 'varying' %}
+    <form method="POST" action="/diverse">
+        <input type="submit" value="Diverse">
+    </form>
 {% endif %}
 <form action="/menu">
     <input type="submit" value="Menu">

@@ -27,7 +27,7 @@ class Scoreboard(db.Model):
 @app.route('/')
 def menu():
     db.create_all()
-    if 'total' in session:
+    if 'score' in session:
         consecutive_score = Scoreboard.query.filter_by(category=session['mode']).first()
         if not consecutive_score or consecutive_score.score < session['consecutive_correct']:
             new_score = Scoreboard(session['mode'], session['consecutive_correct'])
@@ -50,7 +50,9 @@ def menu():
                'matchup': {'question': question_matchup, 'answer': answer_matchup, 'options': ['0x', '0.5x', '1x', '2x'],
                            'html': 'multiple_choice'},
                'damage': {'question': question_damage, 'answer': static_answer, 'options': [1, 2, 3, 4, '5+'],
-                          'html': 'multiple_choice_2'}}
+                          'html': 'multiple_choice_2'},
+               'diverse': {'question': question_diverse, 'answer': answer_diverse, 'options': api.mons,
+                           'html': 'diverse'}}
     return render_template('difficulty_select.html')
 
 
@@ -72,6 +74,7 @@ def scoreboard():
 
 @app.route('/<title>')
 def index(title):
+    session['mode'] = title  # remove this for each of the routes to simplify?
     return render_template(f'{methods[session["mode"]]["html"]}.html', options=methods[session['mode']]['options'], methods=methods,
                            hi=generate_async_question)
 
@@ -118,9 +121,19 @@ def damage():
     return redirect(url_for('index', title=session['mode']))
 
 
+@app.route('/diverse', methods=['POST'])
+def diverse():
+    session['points'] = 10
+    session['mode'] = 'diverse'
+    question()
+    return redirect(url_for('index', title=session['mode']))
+
+
 def question():
     session['answer'] = ''
     session['result'] = ''
+    if 'score' not in session.keys():
+        session['score'] = 0
     return methods[session['mode']]['question']()
 
 
@@ -146,8 +159,6 @@ def answer_input(user_input: None):
 def static_answer(user_input=None):
     if user_input is None:
         user_input = request.form['user_input']
-    if 'score' not in session.keys():
-        session['score'] = 0
     session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
     if str(session['answer']) == user_input:
         session['result'] = "That's right!"
@@ -161,8 +172,6 @@ def static_answer(user_input=None):
 
 def answer_typing():
     user_input = request.form['user_input']
-    if 'score' not in session.keys():
-        session['score'] = 0
     session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
     if user_input == 'None':
         if session['answer'] is None:
@@ -174,7 +183,7 @@ def answer_typing():
             session['image'] = api.get_pokemon_sprite(session['answer'])
             update_highscore(False)
         return redirect(url_for('index', title=session['mode']))
-    actual_typings = api.get_type_from_pokemon_name(user_input)
+    actual_typings = api.get_typing(user_input)
     if all(mon_typing in actual_typings for mon_typing in list(session['generated'])):
         session['result'] = "That's right!"
         session['score'] += 1
@@ -189,8 +198,6 @@ def answer_typing():
 
 def answer_moveset():
     user_input = request.form['user_input']
-    if 'score' not in session.keys():
-        session['score'] = 0
     session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
     if user_input in session['generated']:
         if user_input == session['answer']:
@@ -207,8 +214,6 @@ def answer_moveset():
 
 
 def answer_matchup(user_input):
-    if 'score' not in session.keys():
-        session['score'] = 0
     session['total'] = session['total'] + 1 if 'total' in session.keys() else 1
     if user_input == session['answer']:
         session['result'] = "That's right!"
@@ -217,6 +222,23 @@ def answer_matchup(user_input):
     else:
         session['result'] = f"That's wrong... it's actually {session['answer']}."
         update_highscore(False)
+    return redirect(url_for('index', title=session['mode']))
+
+
+def answer_diverse():
+    try:
+        user_input = request.form['user_input']
+        if user_input == session['answer']:
+            session['result'] = "That's right!"
+            session['points'] += 3
+            session['score'] += 1
+            update_highscore(True)
+        else:
+            session['result'] = f"That's wrong... try again."
+            global generate_async_question
+            generate_async_question = False
+    except KeyError:
+        session['result'] = f"The answer is {session['answer']}"
     return redirect(url_for('index', title=session['mode']))
 
 
@@ -257,6 +279,61 @@ def question_damage():
     generated = api.generate_damage_question()
     return create_question(f"What is the minimum number of hits it takes for {generated['attacking_mon']} to knock out {generated['defending_mon']} using {generated['move']}?",
                            answer=generated['hits'])
+
+
+def question_diverse():
+    session['hints'] = {'generation': False, 'base_stats': False, 'color': False, 'typing': False,
+                                    'flavor_text': False, 'abilities': False}
+    generated = api.generate_random_pokemon()
+    return create_question(f"Guess the Pokemon!", answer=generated['name'])
+
+
+@app.route('/hint/<hint>')
+def diverse_hints(hint):
+    def get_generation():
+        return f"This Pokemon is from generation {api.get_generation(session['answer'])}"
+
+    def get_base_stats():
+        text = ""
+        stats_names = ['Hp', 'Atk', 'Def', 'SpAtk', 'SpDef', 'Spd']
+        base_stats = api.get_base_stats(session['answer'])
+        for i in range(6):
+            text += f"{stats_names[i]}: {base_stats[i]}  "
+        return text
+
+    def get_color():
+        return f"This pokemon is {api.get_color(session['answer'])}"
+
+    def get_typing():
+        typing = api.get_typing(session['answer'])
+        if len(typing) == 1:
+            return f"This pokemon is {typing[0]} type"
+        else:
+            return f"This pokemon is {typing[0]}/{typing[1]} type"
+
+    def get_flavor_text():
+        dex_entry = api.get_flavor_text(session['answer'])
+        return dex_entry
+
+    def get_abilities():
+        abilities = api.get_abilities(session['answer'])
+        if len(abilities) == 1:
+            text = abilities[0]
+        elif len(abilities) == 2:
+            text = f'{abilities[0]} and {abilities[1]}'
+        else:
+            text = f'{abilities[0]}, {abilities[1]}, and {abilities[2]}'
+        return f'This pokemon has {text}.'
+
+    session['question'] = ''
+    hints = {'generation': get_generation, 'base_stats': get_base_stats, 'color': get_color, 'typing': get_typing,
+             'flavor_text': get_flavor_text, 'abilities': get_abilities}
+    session['result'] = hints[hint]()
+
+    if not session['hints'][hint]:
+        session['points'] -= 1
+    session['hints'][hint] = True
+    return redirect(url_for('index', title=session['mode']))
 
 
 def create_question(question, answer=None, image=None, generated=None):

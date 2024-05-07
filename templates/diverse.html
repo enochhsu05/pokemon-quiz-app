@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<p id="result">{{session['result']}}</p>
+<p id="question">{{session['question'] | safe}}</p>
+
+<button onclick="getHint('generation')">Generation</button>
+<button onclick="getHint('base_stats')">Base Stats</button>
+<button onclick="getHint('color')">Color</button>
+<button onclick="getHint('typing')">Typing</button>
+<button onclick="getHint('flavor_text')">Flavor Text</button>
+<button onclick="getHint('abilities')">Abilities</button>
+
+<p></p>
+<p>Points remaining: {{session['points']}}</p>
+<p>Total correct: {{session['score']}}</p>
+
+<form method="POST" action="/answer">
+    <select id="dropdown" name="user_input">
+        {% for option in options %}
+        <option value="{{ option }}">{{ option }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" id="submit">Submit</button>
+</form>
+<form method="POST" action="/answer">
+    <button type="submit" id="pass">Pass</button>
+</form>
+
+<p></p>
+
+<form action="/menu">
+    <input type="submit" value="menu">
+</form>
+<form method="POST" action="/diverse">
+    <input type="submit" value="restart">
+</form>
+
+{% if session['points'] <= 0 %}
+    <script>
+        buttons = document.querySelectorAll('button');
+        buttons.forEach(function(button) {
+            button.disabled = true
+        });
+        document.getElementById('submit').disabled = true
+        document.getElementById('pass').disabled = true
+    </script>
+{% endif %}
+
+<script>
+    async function getHint(hint) {
+        await fetch('/hint/' + hint);
+        location.reload()
+    }
+
+    async function startTask() {
+        const response = await fetch('/async_question');
+        const data = await response.json();
+        document.getElementById('question').innerText = data.result['question'];
+        document.getElementById('result').innerText = data.result['result'];
+    }
+
+    async function getVariables() {
+        const response = await fetch('/data');
+        const data = await response.json();
+        const submit_button = document.getElementById('submit')
+        const pass_button = document.getElementById('pass')
+        if (data.result) {
+            submit_button.disabled = true;
+            pass_button.disabled = true;
+            await startTask()
+            submit_button.disabled = false;
+            pass_button.disabled = false;
+        }
+    }
+
+    window.onload = getVariables;
+</script>
+
+{% endblock %}
