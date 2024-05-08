@@ -491,3 +491,10 @@ def get_abilities(name: str) -> list[str]:
     if len(abilities) == 2 and abilities[0] == abilities[1]:
         return [abilities[0]]
     return abilities
+
+
+def get_num_evolved(name: str):
+    line = [mon['name'] for mon in get_species_line_from_species(get_species_by_name(name))]
+    for i in range(len(line)):
+        if line[i] == name or i == len(line) - 1:
+            return i

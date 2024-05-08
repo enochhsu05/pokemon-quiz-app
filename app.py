@@ -295,7 +295,8 @@ def question_diverse():
                         'typing': {'used': False, 'value': 3},
                         'flavor_text': {'used': False, 'value': 4},
                         'abilities': {'used': False, 'value': 2},
-                        'dropdown': {'used': False, 'value': 1}}
+                        'dropdown': {'used': False, 'value': 1},
+                        'evolution_number': {'used': False, 'value': 1}}
     session['dropdown'] = False
     generated = api.generate_random_pokemon()
     return create_question(f"Guess the Pokemon!", answer=generated['name'])
@@ -342,6 +343,9 @@ def diverse_hints(hint):
         session['dropdown'] = True
         return 'The answer field has been made a dropdown'
 
+    def num_evolved():
+        return f'The number of times this Pokemon has evolved is {api.get_num_evolved(session["answer"])}'
+
     session['question'] = ''
     hints = {'generation': get_generation,
              'base_stats': get_base_stats,
@@ -349,7 +353,8 @@ def diverse_hints(hint):
              'typing': get_typing,
              'flavor_text': get_flavor_text,
              'abilities': get_abilities,
-             'dropdown': make_dropdown}
+             'dropdown': make_dropdown,
+             'evolution_number': num_evolved}
     if session['points'] - session['hints'][hint]['value'] >= 2:
         session['result'] = hints[hint]()
         session['points'] -= session['hints'][hint]['value']
