@@ -4,12 +4,16 @@
 <p id="result">{{session['result']}}</p>
 <p id="question">{{session['question'] | safe}}</p>
 
-<button onclick="getHint('generation')">Generation</button>
-<button onclick="getHint('base_stats')">Base Stats</button>
-<button onclick="getHint('color')">Color</button>
-<button onclick="getHint('typing')">Typing</button>
-<button onclick="getHint('flavor_text')">Flavor Text</button>
-<button onclick="getHint('abilities')">Abilities</button>
+{% for key in session['hints'].keys() %}
+    <button onclick="getHint('{{key}}')">{{method(key)}}: {{session['hints'][key]['value']}}</button>
+{% endfor %}
+
+<!--<button onclick="getHint('generation')">Generation: {{session['hints']['generation']['value']}}</button>-->
+<!--<button onclick="getHint('base_stats')">Base Stats</button>-->
+<!--<button onclick="getHint('color')">Color</button>-->
+<!--<button onclick="getHint('typing')">Typing</button>-->
+<!--<button onclick="getHint('flavor_text')">Flavor Text</button>-->
+<!--<button onclick="getHint('abilities')">Abilities</button>-->
 
 <p></p>
 <p>Points remaining: {{session['points']}}</p>
@@ -71,6 +75,7 @@
             await startTask()
             submit_button.disabled = false;
             pass_button.disabled = false;
+            location.reload()
         }
     }
 

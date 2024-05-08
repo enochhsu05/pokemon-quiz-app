@@ -27,7 +27,7 @@ class Scoreboard(db.Model):
 @app.route('/')
 def menu():
     db.create_all()
-    if 'score' in session:
+    if 'consecutive_correct' in session:
         consecutive_score = Scoreboard.query.filter_by(category=session['mode']).first()
         if not consecutive_score or consecutive_score.score < session['consecutive_correct']:
             new_score = Scoreboard(session['mode'], session['consecutive_correct'])
@@ -47,7 +47,8 @@ def menu():
                           'options': mons_and_none, 'html': 'dropdown'},
                'moveset': {'question': question_moveset, 'answer': answer_moveset, 'options': api.mons,
                            'html': 'dropdown'},
-               'matchup': {'question': question_matchup, 'answer': answer_matchup, 'options': ['0x', '0.5x', '1x', '2x'],
+               'matchup': {'question': question_matchup, 'answer': answer_matchup,
+                           'options': ['0x', '0.5x', '1x', '2x'],
                            'html': 'multiple_choice'},
                'damage': {'question': question_damage, 'answer': static_answer, 'options': [1, 2, 3, 4, '5+'],
                           'html': 'multiple_choice_2'},
@@ -74,9 +75,12 @@ def scoreboard():
 
 @app.route('/<title>')
 def index(title):
+    def title_case(text):
+        return ' '.join([word[0].upper() + word[1:] for word in text.replace('_', ' ').split(' ')])
     session['mode'] = title  # remove this for each of the routes to simplify?
-    return render_template(f'{methods[session["mode"]]["html"]}.html', options=methods[session['mode']]['options'], methods=methods,
-                           hi=generate_async_question)
+    return render_template(f'{methods[session["mode"]]["html"]}.html', options=methods[session['mode']]['options'],
+                           methods=methods,
+                           hi=generate_async_question, method=title_case)
 
 
 @app.route('/generation', methods=['POST'])
@@ -123,7 +127,7 @@ def damage():
 
 @app.route('/diverse', methods=['POST'])
 def diverse():
-    session['points'] = 10
+    session['points'] = 20
     session['mode'] = 'diverse'
     question()
     return redirect(url_for('index', title=session['mode']))
@@ -227,10 +231,11 @@ def answer_matchup(user_input):
 
 def answer_diverse():
     try:
+        session['points'] -= 1
         user_input = request.form['user_input']
         if user_input == session['answer']:
             session['result'] = "That's right!"
-            session['points'] += 3
+            session['points'] += 10
             session['score'] += 1
             update_highscore(True)
         else:
@@ -271,19 +276,25 @@ def question_moveset():
 
 def question_matchup():
     generated = api.generate_matchup_question()
-    return create_question(f"What is the effectiveness of {generated['offensive_type']} type against {generated['defensive_type']} type?",
-                           answer=generated['matchup'])
+    return create_question(
+        f"What is the effectiveness of {generated['offensive_type']} type against {generated['defensive_type']} type?",
+        answer=generated['matchup'])
 
 
 def question_damage():
     generated = api.generate_damage_question()
-    return create_question(f"What is the minimum number of hits it takes for {generated['attacking_mon']} to knock out {generated['defending_mon']} using {generated['move']}?",
-                           answer=generated['hits'])
+    return create_question(
+        f"What is the minimum number of hits it takes for {generated['attacking_mon']} to knock out {generated['defending_mon']} using {generated['move']}?",
+        answer=generated['hits'])
 
 
 def question_diverse():
-    session['hints'] = {'generation': False, 'base_stats': False, 'color': False, 'typing': False,
-                                    'flavor_text': False, 'abilities': False}
+    session['hints'] = {'generation': {'used': False, 'value': 1},
+                        'base_stats': {'used': False, 'value': 2},
+                        'color': {'used': False, 'value': 1},
+                        'typing': {'used': False, 'value': 3},
+                        'flavor_text': {'used': False, 'value': 4},
+                        'abilities': {'used': False, 'value': 2}}
     generated = api.generate_random_pokemon()
     return create_question(f"Guess the Pokemon!", answer=generated['name'])
 
@@ -326,13 +337,15 @@ def diverse_hints(hint):
         return f'This pokemon has {text}.'
 
     session['question'] = ''
-    hints = {'generation': get_generation, 'base_stats': get_base_stats, 'color': get_color, 'typing': get_typing,
-             'flavor_text': get_flavor_text, 'abilities': get_abilities}
+    hints = {'generation': get_generation,
+             'base_stats': get_base_stats,
+             'color': get_color,
+             'typing': get_typing,
+             'flavor_text': get_flavor_text,
+             'abilities': get_abilities}
     session['result'] = hints[hint]()
-
-    if not session['hints'][hint]:
-        session['points'] -= 1
-    session['hints'][hint] = True
+    session['points'] -= session['hints'][hint]['value']
+    session['hints'][hint]['value'] = 0
     return redirect(url_for('index', title=session['mode']))
 
 
