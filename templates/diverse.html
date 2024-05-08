@@ -5,7 +5,7 @@
 <p id="question">{{session['question'] | safe}}</p>
 
 {% for key in session['hints'].keys() %}
-    <button onclick="getHint('{{key}}')">{{method(key)}}: {{session['hints'][key]['value']}}</button>
+    <button onclick="getHint('{{key}}')">{{method(key)}} - {{session['hints'][key]['value']}}</button>
 {% endfor %}
 
 <!--<button onclick="getHint('generation')">Generation: {{session['hints']['generation']['value']}}</button>-->
@@ -20,12 +20,16 @@
 <p>Total correct: {{session['score']}}</p>
 
 <form method="POST" action="/answer">
-    <select id="dropdown" name="user_input">
-        {% for option in options %}
-        <option value="{{ option }}">{{ option }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit" id="submit">Submit</button>
+    {% if session['dropdown'] %}
+        <select id="dropdown" name="user_input">
+            {% for option in options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+        </select>
+    {% else %}
+        <input type="text" id="user_input" name="user_input">
+    {% endif %}
+    <button type="submit" id="submit">Submit - 2</button>
 </form>
 <form method="POST" action="/answer">
     <button type="submit" id="pass">Pass</button>
@@ -34,13 +38,13 @@
 <p></p>
 
 <form action="/menu">
-    <input type="submit" value="menu">
+    <input type="submit" value="Menu">
 </form>
 <form method="POST" action="/diverse">
-    <input type="submit" value="restart">
+    <input type="submit" value="Restart">
 </form>
 
-{% if session['points'] <= 0 %}
+{% if session['points'] <= 1 %}
     <script>
         buttons = document.querySelectorAll('button');
         buttons.forEach(function(button) {

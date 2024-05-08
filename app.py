@@ -231,8 +231,8 @@ def answer_matchup(user_input):
 
 def answer_diverse():
     try:
-        session['points'] -= 1
-        user_input = request.form['user_input']
+        user_input = request.form['user_input'].lower()
+        session['points'] -= 2
         if user_input == session['answer']:
             session['result'] = "That's right!"
             session['points'] += 10
@@ -294,7 +294,9 @@ def question_diverse():
                         'color': {'used': False, 'value': 1},
                         'typing': {'used': False, 'value': 3},
                         'flavor_text': {'used': False, 'value': 4},
-                        'abilities': {'used': False, 'value': 2}}
+                        'abilities': {'used': False, 'value': 2},
+                        'dropdown': {'used': False, 'value': 1}}
+    session['dropdown'] = False
     generated = api.generate_random_pokemon()
     return create_question(f"Guess the Pokemon!", answer=generated['name'])
 
@@ -336,16 +338,24 @@ def diverse_hints(hint):
             text = f'{abilities[0]}, {abilities[1]}, and {abilities[2]}'
         return f'This pokemon has {text}.'
 
+    def make_dropdown():
+        session['dropdown'] = True
+        return 'The answer field has been made a dropdown'
+
     session['question'] = ''
     hints = {'generation': get_generation,
              'base_stats': get_base_stats,
              'color': get_color,
              'typing': get_typing,
              'flavor_text': get_flavor_text,
-             'abilities': get_abilities}
-    session['result'] = hints[hint]()
-    session['points'] -= session['hints'][hint]['value']
-    session['hints'][hint]['value'] = 0
+             'abilities': get_abilities,
+             'dropdown': make_dropdown}
+    if session['points'] - session['hints'][hint]['value'] >= 2:
+        session['result'] = hints[hint]()
+        session['points'] -= session['hints'][hint]['value']
+        session['hints'][hint]['value'] = 0
+    else:
+        session['result'] = "You wouldn't have enough points to make a guess"
     return redirect(url_for('index', title=session['mode']))
 
 
