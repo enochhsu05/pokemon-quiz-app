@@ -239,7 +239,10 @@ def answer_diverse():
             session['score'] += 1
             update_highscore(True)
         else:
-            session['result'] = f"That's wrong... try again."
+            if session['points'] > 1:
+                session['result'] = f"That's wrong... try again."
+            else:
+                session['result'] = f"The answer is {session['answer']}"
             global generate_async_question
             generate_async_question = False
     except KeyError:
@@ -296,7 +299,8 @@ def question_diverse():
                         'flavor_text': {'used': False, 'value': 4},
                         'abilities': {'used': False, 'value': 2},
                         'dropdown': {'used': False, 'value': 1},
-                        'evolution_number': {'used': False, 'value': 1}}
+                        'evolution_number': {'used': False, 'value': 1},
+                        'egg_groups': {'used': False, 'value': 1}}
     session['dropdown'] = False
     generated = api.generate_random_pokemon()
     return create_question(f"Guess the Pokemon!", answer=generated['name'])
@@ -346,6 +350,13 @@ def diverse_hints(hint):
     def num_evolved():
         return f'The number of times this Pokemon has evolved is {api.get_num_evolved(session["answer"])}'
 
+    def egg_groups():
+        groups = api.get_egg_groups(session['answer'])
+        if len(groups) == 1:
+            return f'This Pokemon is from the {groups[0]} egg group'
+        else:
+            return f'This Pokemon is from the {groups[0]} and {groups[1]} egg groups'
+
     session['question'] = ''
     hints = {'generation': get_generation,
              'base_stats': get_base_stats,
@@ -354,7 +365,8 @@ def diverse_hints(hint):
              'flavor_text': get_flavor_text,
              'abilities': get_abilities,
              'dropdown': make_dropdown,
-             'evolution_number': num_evolved}
+             'evolution_number': num_evolved,
+             'egg_groups': egg_groups}
     if session['points'] - session['hints'][hint]['value'] >= 2:
         session['result'] = hints[hint]()
         session['points'] -= session['hints'][hint]['value']

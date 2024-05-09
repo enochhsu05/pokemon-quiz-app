@@ -498,3 +498,7 @@ def get_num_evolved(name: str):
     for i in range(len(line)):
         if line[i] == name or i == len(line) - 1:
             return i
+
+
+def get_egg_groups(name: str):
+    return [egg['name'] for egg in get_species_by_name(name)['egg_groups']]
