@@ -8,13 +8,6 @@
     <button onclick="getHint('{{key}}')">{{method(key)}} - {{session['hints'][key]['value']}}</button>
 {% endfor %}
 
-<!--<button onclick="getHint('generation')">Generation: {{session['hints']['generation']['value']}}</button>-->
-<!--<button onclick="getHint('base_stats')">Base Stats</button>-->
-<!--<button onclick="getHint('color')">Color</button>-->
-<!--<button onclick="getHint('typing')">Typing</button>-->
-<!--<button onclick="getHint('flavor_text')">Flavor Text</button>-->
-<!--<button onclick="getHint('abilities')">Abilities</button>-->
-
 <p></p>
 <p>Points remaining: {{session['points']}}</p>
 <p>Total correct: {{session['score']}}</p>

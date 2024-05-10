@@ -42,23 +42,24 @@ def menu():
     methods = {'generation': {'question': question_generation, 'answer': static_answer,
                               'options': [1, 2, 3, 4, 5, 6, 7, 8, 9], 'html': 'dropdown'},
                'pokemon': {'question': question_pokemon, 'answer': static_answer,
-                           'options': api.mons, 'html': 'dropdown'},
+                           'options': sorted(api.mons), 'html': 'dropdown'},
                'typing': {'question': question_typing, 'answer': answer_typing,
                           'options': mons_and_none, 'html': 'dropdown'},
-               'moveset': {'question': question_moveset, 'answer': answer_moveset, 'options': api.mons,
+               'moveset': {'question': question_moveset, 'answer': answer_moveset, 'options': sorted(api.mons),
                            'html': 'dropdown'},
                'matchup': {'question': question_matchup, 'answer': answer_matchup,
                            'options': ['0x', '0.5x', '1x', '2x'],
                            'html': 'multiple_choice'},
                'damage': {'question': question_damage, 'answer': static_answer, 'options': [1, 2, 3, 4, '5+'],
                           'html': 'multiple_choice_2'},
-               'diverse': {'question': question_diverse, 'answer': answer_diverse, 'options': api.mons,
+               'diverse': {'question': question_diverse, 'answer': answer_diverse, 'options': sorted(api.mons),
                            'html': 'diverse'}}
     return render_template('difficulty_select.html')
 
 
 @app.route('/menu')
 def to_menu():
+    print(list({mon: None for mon in api.mons}.keys()))
     return redirect(url_for('menu'))
 
 
@@ -128,6 +129,7 @@ def damage():
 @app.route('/diverse', methods=['POST'])
 def diverse():
     session['points'] = 20
+    session['score'] = 0
     session['mode'] = 'diverse'
     question()
     return redirect(url_for('index', title=session['mode']))
